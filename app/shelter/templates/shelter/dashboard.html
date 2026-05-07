@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Refuge - Chats en pension</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f7f7f7;
+            color: #222;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .top-links {
+            margin-bottom: 24px;
+        }
+
+        .top-links a,
+        .logout-button {
+            display: inline-block;
+            padding: 10px 14px;
+            background: #2f6fed;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .logout-button {
+            background: #555;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .cat-image {
+            width: 140px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #eee;
+        }
+
+        .cat-name {
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #e8f1ff;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Dashboard du refuge</h1>
+
+    <p>
+        Connecté en tant que <strong>{{ user.username }}</strong>
+    </p>
+
+    <div class="top-links">
+        <a href="/">Retour au dashboard principal</a>
+        <a href="/api/">API Root</a>
+        <a href="/shelter/">Dashboard Refuge</a>
+        <form method="post" action="/accounts/logout/" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-button">Se déconnecter</button>
+        </form>
+    </div>
+
+    <h2>Chats adoptés par le refuge</h2>
+
+    {% for cat in shelter_cats %}
+        <div class="card">
+            {% if cat.image_url %}
+                <img
+                    class="cat-image"
+                    src="{{ cat.image_url }}"
+                    alt="Photo de {{ cat.name }}"
+                >
+            {% endif %}
+
+            <div>
+                <div class="cat-name">{{ cat.name }}</div>
+
+                <p>Âge : {{ cat.age }} ans</p>
+                <p>Race : {{ cat.breed }}</p>
+
+                <p class="muted">
+                    Date d’adoption : {{ cat.adoption_date }}
+                </p>
+
+                <p class="muted">
+                    Ancien propriétaire :
+                    {{ cat.owner_name }} — {{ cat.owner_email }}
+                </p>
+
+                <p class="muted">
+                    ID source dans la base principale : {{ cat.source_cat_id }}
+                </p>
+
+                <span class="status">
+                    Statut : {{ cat.boarding_status }}
+                </span>
+            </div>
+        </div>
+    {% empty %}
+        <p>Aucun chat actuellement en pension au refuge.</p>
+    {% endfor %}
+</body>
+</html>
