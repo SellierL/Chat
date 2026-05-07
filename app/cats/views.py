@@ -31,7 +31,6 @@ def home(request):
         {
             "owners": owners,
             "cats": cats,
-            "shelter_cats": shelter_cats,
         },
     )
 

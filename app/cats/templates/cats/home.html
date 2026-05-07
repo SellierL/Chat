@@ -12,8 +12,15 @@
             color: #222;
         }
 
+        .page-container {
+            width: min(1400px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
         h1 {
             color: #333;
+            margin-bottom: 24px;
         }
 
         h2 {
@@ -99,11 +106,12 @@
 
         .adopted-badge {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             width: 90px;
-            z-index: 2;
-            transform: rotate(12deg);
+            height: auto;
+            z-index: 10;
+            object-fit: contain;
         }
 
         .cat-name {
@@ -148,180 +156,205 @@
             margin: 0;
         }
 
-        @media (max-width: 1100px) {
+        @media (max-width: 900px) {
+            .page-container {
+                width: min(100% - 24px, 700px);
+                padding: 24px 0;
+            }
+
             .container {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
 
             .top-bar {
                 flex-direction: column;
                 align-items: flex-start;
             }
+
+            .links {
+                margin-bottom: 24px;
+            }
+
+            .cat-image {
+                height: 220px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .page-container {
+                width: min(100% - 16px, 100%);
+                padding: 16px 0;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .card {
+                padding: 14px;
+            }
+
+            .cat-image {
+                height: 170px;
+            }
+
+            .owner-cat-item {
+                align-items: flex-start;
+            }
+
+            .links a,
+            .login-link,
+            .logout-button,
+            .transfer-button {
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+            }
+
+            .adopted-badge {
+                width: 68px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h1>Cat Boarding Dashboard</h1>
+    <main class="page-container"></main>
+        <h1>Cat Boarding Dashboard</h1>
 
-    <div class="top-bar">
-        <div>
-            {% if user.is_authenticated %}
-                Connecté en tant que <strong>{{ user.username }}</strong>
-            {% else %}
-                Non connecté
-            {% endif %}
+        <div class="top-bar">
+            <div>
+                {% if user.is_authenticated %}
+                    Connecté en tant que <strong>{{ user.username }}</strong>
+                {% else %}
+                    Non connecté
+                {% endif %}
+            </div>
+
+            <div>
+                {% if user.is_authenticated %}
+                    <form method="post" action="/accounts/logout/">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-button">Se déconnecter</button>
+                    </form>
+                {% else %}
+                    <a class="login-link" href="/accounts/login/">Se connecter</a>
+                {% endif %}
+            </div>
         </div>
 
-        <div>
-            {% if user.is_authenticated %}
-                <form method="post" action="/accounts/logout/">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-button">Se déconnecter</button>
-                </form>
-            {% else %}
-                <a class="login-link" href="/accounts/login/">Se connecter</a>
-            {% endif %}
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <p>
+            Cette page affiche les chats de la base principale et les chats transférés dans la base du refuge.
+        </p>
+
+        <div class="links">
+            <a href="/api/">API Root</a>
+            <a href="/api/owners/">Owners API</a>
+            <a href="/api/cats/">Cats API</a>
+            <a href="/shelter/">Dashboard Refuge</a>
         </div>
-    </div>
 
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="message">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+        <div class="container">
+            <section>
+                <h2>Owners</h2>
 
-    <p>
-        Cette page affiche les chats de la base principale et les chats transférés dans la base du refuge.
-    </p>
+                {% for owner in owners %}
+                    <div class="card">
+                        <h3>{{ owner.first_name }}</h3>
+                        <p class="muted">{{ owner.email }}</p>
 
-    <div class="links">
-        <a href="/api/">API Root</a>
-        <a href="/api/owners/">Owners API</a>
-        <a href="/api/cats/">Cats API</a>
-        <a href="/shelter/">Dashboard Refuge</a>
-    </div>
+                        <strong>Chats associés :</strong>
+                        <ul>
+                            {% for cat in owner.cats.all %}
+                                <li class="owner-cat-item">
+                                    {% if cat.image_url %}
+                                        <img
+                                            class="owner-cat-image"
+                                            src="{{ cat.image_url }}"
+                                            alt="Photo de {{ cat.name }}"
+                                        >
+                                    {% endif %}
 
-    <div class="container">
-        <section>
-            <h2>Owners</h2>
+                                    <span>
+                                        {{ cat.name }} — {{ cat.age }} ans — {{ cat.breed }} -- {{ cat.provenance }}
+                                    </span>
+                                </li>
+                            {% empty %}
+                                <li>Aucun chat associé</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% empty %}
+                    <p>Aucun propriétaire trouvé.</p>
+                {% endfor %}
+            </section>
 
-            {% for owner in owners %}
-                <div class="card">
-                    <h3>{{ owner.first_name }}</h3>
-                    <p class="muted">{{ owner.email }}</p>
+            <section>
+                <h2>Chats disponibles</h2>
 
-                    <strong>Chats associés :</strong>
-                    <ul>
-                        {% for cat in owner.cats.all %}
-                            <li class="owner-cat-item">
-                                {% if cat.image_url %}
-                                    <img
-                                        class="owner-cat-image"
-                                        src="{{ cat.image_url }}"
-                                        alt="Photo de {{ cat.name }}"
-                                    >
-                                {% endif %}
-
-                                <span>
-                                    {{ cat.name }} — {{ cat.age }} ans — {{ cat.breed }}
-                                </span>
-                            </li>
-                        {% empty %}
-                            <li>Aucun chat associé</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% empty %}
-                <p>Aucun propriétaire trouvé.</p>
-            {% endfor %}
-        </section>
-
-        <section>
-            <h2>Chats disponibles</h2>
-
-            {% for cat in cats %}
-                <div class="card">
-                    {% if cat.is_adopted %}
-                        <img
-                            class="adopted-badge"
-                            src="https://t4.ftcdn.net/jpg/02/82/12/61/360_F_282126128_ibwNfZgkBKT5qDx5Wv67mxSZn2HYLi4u.jpg"
-                            alt="Adopted"
-                        >
-                    {% endif %}
-
-                    {% if cat.image_url %}
-                        <img
-                            class="cat-image"
-                            src="{{ cat.image_url }}"
-                            alt="Photo de {{ cat.name }}"
-                        >
-                    {% endif %}
-
-                    <p class="cat-name">{{ cat.name }}</p>
-                    <p>Âge : {{ cat.age }} ans</p>
-                    <p>Race : {{ cat.breed }}</p>
-                    <p class="muted">
-                        Owner : {{ cat.owner.first_name }} — {{ cat.owner.email }}
-                    </p>
-
-                    {% if cat.is_adopted %}
-                        <p class="muted">
-                            <strong>Déjà adopté</strong>
-                        </p>
-                    {% else %}
-                        {% if user.is_authenticated %}
-                            <form method="post" action="{% url 'transfer_cat_to_shelter' cat.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="transfer-button">
-                                    Transférer vers le refuge
-                                </button>
-                            </form>
-                        {% else %}
-                            <p class="muted">
-                                Connexion requise pour transférer ce chat.
-                            </p>
+                {% for cat in cats %}
+                    <div class="card">
+                        {% if cat.is_adopted %}
+                            <img
+                                class="adopted-badge"
+                                src="https://t3.ftcdn.net/jpg/17/80/42/76/360_F_1780427624_bhBNgBL9PZF8y0UdJ0VEjfiwdQtcc5Gv.jpg"
+                                alt="Adopted"
+                            >
                         {% endif %}
-                    {% endif %}
-                </div>
-            {% empty %}
-                <p>Aucun chat disponible dans la base principale.</p>
-            {% endfor %}
-        </section>
 
-        <section>
-            <h2>Chats en pension au refuge</h2>
+                        {% if cat.image_url %}
+                            <img
+                                class="cat-image"
+                                src="{{ cat.image_url }}"
+                                alt="Photo de {{ cat.name }}"
+                            >
+                        {% endif %}
 
-            {% for shelter_cat in shelter_cats %}
-                <div class="card">
-                    {% if shelter_cat.image_url %}
-                        <img
-                            class="cat-image"
-                            src="{{ shelter_cat.image_url }}"
-                            alt="Photo de {{ shelter_cat.name }}"
-                        >
-                    {% endif %}
+                        <p class="cat-name">{{ cat.name }}</p>
+                        <p>Âge : {{ cat.age }} ans</p>
+                        <p>Race : {{ cat.breed }}</p>
+                        <p>Provenance : {{ cat.provenance }}</p>
+                        <p>Particularité : {{ cat.particularity }}</p>
 
-                    <p class="cat-name">{{ shelter_cat.name }}</p>
-                    <p>Âge : {{ shelter_cat.age }} ans</p>
-                    <p>Race : {{ shelter_cat.breed }}</p>
-                    <p>Statut : {{ shelter_cat.boarding_status }}</p>
-                    <p class="muted">
-                        Ancien propriétaire :
-                        {{ shelter_cat.owner_name }} — {{ shelter_cat.owner_email }}
-                    </p>
-                    <p class="muted">
-                        ID source : {{ shelter_cat.source_cat_id }}
-                    </p>
-                </div>
-            {% empty %}
-                <p>Aucun chat actuellement en pension.</p>
-            {% endfor %}
-        </section>
-    </div>
+                        <p class="muted">
+                            Owner : {{ cat.owner.first_name }} — {{ cat.owner.email }}
+                        </p>
+
+                        {% if cat.is_adopted %}
+                            <p class="muted">
+                                <strong>Déjà adopté</strong>
+                            </p>
+                        {% else %}
+                            {% if user.is_authenticated %}
+                                <form method="post" action="{% url 'transfer_cat_to_shelter' cat.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="transfer-button">
+                                        Transférer vers le refuge
+                                    </button>
+                                </form>
+                            {% else %}
+                                <p class="muted">
+                                    Connexion requise pour transférer ce chat.
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p>Aucun chat disponible dans la base principale.</p>
+                {% endfor %}
+            </section>
+        </div>
+    </main>
 </body>
 </html>
