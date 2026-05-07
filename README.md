@@ -15,7 +15,7 @@ Le projet est entièrement lancé avec Docker Compose.
 
 ## Fichier `.env`
 
-Créer un fichier `.env` à la racine du projet avec
+Créer un fichier `.env` à la racine du projet.
 
 ## Lancer le projet
 
