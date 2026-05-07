@@ -6,7 +6,7 @@ services:
     volumes:
       - ./app:/app
     ports:
-      - "8000:8000"
+      - "8002:8000"
     env_file:
       - .env
     depends_on:
@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: ${CAT_POSTGRES_USER}
       POSTGRES_PASSWORD: ${CAT_POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5434:5432"
 
   shelter_db:
     image: postgres:16
@@ -33,4 +33,4 @@ services:
       POSTGRES_USER: ${SHELTER_POSTGRES_USER}
       POSTGRES_PASSWORD: ${SHELTER_POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5435:5432"
